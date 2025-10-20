@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 
 type User = {
     id?: number;
@@ -19,20 +20,31 @@ export default function UserManager() {
         email: "",
     });
     //  GET - GET Users from Backend with API
+    // useEffect(() => {
+    //     fetch(
+    //         "https://jsonplaceholder.typicode.com/users"
+    //     )
+    //         .then((res) => res.json())
+    //         .then((data) => {
+    //             setUsers(data);
+    //             setLoading(false);
+    //         })
+    //         .catch(() =>
+    //             toast.error(
+    //                 "خطا در دریافت داده‌ها"
+    //             )
+    //         );
+    // }, []);
+
     useEffect(() => {
-        fetch(
+        axios.get(
             "https://jsonplaceholder.typicode.com/users"
         )
-            .then((res) => res.json())
-            .then((data) => {
-                setUsers(data);
+            .then((res) => {
+                setUsers(res.data);
                 setLoading(false);
             })
-            .catch(() =>
-                toast.error(
-                    "خطا در دریافت داده‌ها"
-                )
-            );
+            .catch(() => toast.error("خطا در دریافت داده‌ها"));
     }, []);
 
     //  POST —   Add New User
@@ -44,19 +56,22 @@ export default function UserManager() {
             return;
         }
 
-        const res = await fetch(
-            "https://jsonplaceholder.typicode.com/users",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json",
-                },
-                body: JSON.stringify(form),
-            }
-        );
-        const data = await res.json();
-        setUsers((prev) => [...prev, data]);
+        // const res = await fetch(
+        //     "https://jsonplaceholder.typicode.com/users",
+        //     {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type":
+        //                 "application/json",
+        //         },
+        //         body: JSON.stringify(form),
+        //     }
+        //
+
+
+        const res = await axios.post(
+            "https://jsonplaceholder.typicode.com/users", form);
+        setUsers((prev) => [...prev, res.data]);
         setForm({ name: "", email: "" });
         toast.success("کاربر جدید اضافه شد 🎉");
     }
@@ -64,23 +79,25 @@ export default function UserManager() {
     async function updateUser() {
         if (!editingUser) return;
 
-        const res = await fetch(
-            `https://jsonplaceholder.typicode.com/users/${editingUser.id}`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type":
-                        "application/json",
-                },
-                body: JSON.stringify(form),
-            }
-        );
+        // const res = await fetch(
+        //     `https://jsonplaceholder.typicode.com/users/${editingUser.id}`,
+        //     {
+        //         method: "PUT",
+        //         headers: {
+        //             "Content-Type":
+        //                 "application/json",
+        //         },
+        //         body: JSON.stringify(form),
+        //     }
+        // );
 
-        const data = await res.json();
+
+        const res = await axios.put(
+            `https://jsonplaceholder.typicode.com/users/${editingUser.id}`, form);
+
+
         setUsers((prev) =>
-            prev.map((u) =>
-                u.id === editingUser.id ? data : u
-            )
+            prev.map((u) => (u.id === editingUser.id ? res.data : u))
         );
         setEditingUser(null);
         setForm({ name: "", email: "" });
@@ -88,13 +105,18 @@ export default function UserManager() {
     }
 
     //  DELETE User
+    // async function deleteUser(id: number) {
+    //     await fetch(
+    //         `https://jsonplaceholder.typicode.com/users/${id}`,
+    //         {
+    //             method: "DELETE",
+    //         }
+    //     );
+
     async function deleteUser(id: number) {
-        await fetch(
-            `https://jsonplaceholder.typicode.com/users/${id}`,
-            {
-                method: "DELETE",
-            }
-        );
+        await axios.delete(`https://jsonplaceholder.typicode.com/users/${id}`);
+
+
 
         setUsers((prev) =>
             prev.filter((u) => u.id !== id)
@@ -112,7 +134,7 @@ export default function UserManager() {
     return (
         <div className="p-6 bg-white rounded shadow-lg w-[400px]">
             <Toaster />
-            <h1 className="text-2xl font-bold mb-4 text-center text-black text-2xl ">
+            <h1 className="text-2xl font-bold mb-4 text-center text-black">
                 مدیریت کاربران 👥
             </h1>
 
